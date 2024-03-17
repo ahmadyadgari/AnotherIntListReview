@@ -1,16 +1,63 @@
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 public class ArrayIntList implements IntList {
+    // Internal (private) representation
+    private int[] buffer;
+    private int size;                   // number of "spots used" in the buffer
+
+    private final static int INITIAL_CAPACITY = 10;
+
+    public ArrayIntList(){
+
+        buffer = new int[INITIAL_CAPACITY];
+        size = 0;
+
+    }
 
     /**
      * Prepends (inserts) the specified value at the front of the list (at index 0).
      * Shifts the value currently at the front of the list (if any) and any
      * subsequent values to the right.
      *
+     * This is relatively slow operation
+     * Linear time - O(size) or O(n)
+     * because we have shift every item
+     * in the buffer to the right to make room
+     * at the front for the new item
+     *
      * @param value value to be inserted
      */
     @Override
     public void addFront(int value) {
+        // check if full
+        if (size == buffer.length) {
+            resize(2 * buffer.length);
+        }
+        // Open a spot at index 0 where value will be saved
+        // shift everything over to the right by 1 spot
+        for (int i = size; i >= 1; i--) {
+            buffer[i] = buffer[i -1];
+        }
+
+        // put the value in position [0]
+        buffer[0] = value;
+
+        size++;
+    }
+
+    private void resize (int newSize) {
+        // create a new array that is of the new size
+        int[] temp = new int[newSize];
+
+        // copy over values from the existing buffer
+        for (int i = 0; i < size; i++) {
+            temp[i] = buffer[i];
+
+        }
+
+        // make the switchover
+        buffer = temp;
 
     }
 
@@ -21,7 +68,15 @@ public class ArrayIntList implements IntList {
      */
     @Override
     public void addBack(int value) {
-
+        // Check to see if we still have room (capacity)
+       if (size == buffer.length){
+           // if the size matches  the capacity, then I know I'm "full"
+           // and I need to resize  (create a new larger buffer and copy
+           // the values over from the older smaller buffer)
+            resize(2 * buffer.length);
+       }
+        buffer[size] = value;
+        size++;
     }
 
     /**
@@ -35,7 +90,15 @@ public class ArrayIntList implements IntList {
      */
     @Override
     public void add(int index, int value) {
-
+        if (index < 0 || index > size) {
+            throw new IndexOutOfBoundsException("Index: " + index + ", size: " + size);
+        }
+        if (size == buffer.length) {
+            resize(2 * buffer.length);
+        }
+        System.arraycopy(buffer, index, buffer, index + 1, - index);
+        buffer[index] = value;
+        size++;
     }
 
     /**
@@ -45,7 +108,12 @@ public class ArrayIntList implements IntList {
      */
     @Override
     public void removeFront() {
-
+        if (size == 0) {
+            throw new NoSuchElementException("List is empty");
+        }
+        System.arraycopy(buffer, 1, buffer, 0, size - 1);
+        buffer[size - 1] = 0;  // clear the last element
+        size--;
     }
 
     /**
@@ -54,6 +122,12 @@ public class ArrayIntList implements IntList {
      */
     @Override
     public void removeBack() {
+        if (size == 0) {
+            throw new IllegalStateException("already empty!");
+        }
+
+        size--;
+        buffer[size] = 0;
 
     }
 
@@ -68,7 +142,14 @@ public class ArrayIntList implements IntList {
      */
     @Override
     public int remove(int index) {
-        return 0;
+        if (index < 0 || index >= size) {
+            throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
+        }
+        int removedValue = buffer[index];
+        System.arraycopy(buffer, index + 1, buffer, index, size - index - 1);
+        buffer[size - 1] = 0; // Clear the last element
+        size--;
+        return removedValue;
     }
 
     /**
@@ -80,7 +161,10 @@ public class ArrayIntList implements IntList {
      */
     @Override
     public int get(int index) {
-        return 0;
+        if (index < 0 || index >= size) {
+            throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
+        }
+        return buffer[index];
     }
 
     /**
@@ -91,6 +175,11 @@ public class ArrayIntList implements IntList {
      */
     @Override
     public boolean contains(int value) {
+        for (int i = 0; i < size; i++) {
+            if (buffer[i] == value) {
+                return true;
+            }
+        }
         return false;
     }
 
@@ -104,7 +193,12 @@ public class ArrayIntList implements IntList {
      */
     @Override
     public int indexOf(int value) {
-        return 0;
+        for (int i = 0; i < size; i++) {
+            if (buffer[i] == value) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     /**
@@ -114,7 +208,7 @@ public class ArrayIntList implements IntList {
      */
     @Override
     public boolean isEmpty() {
-        return false;
+        return size == 0;
     }
 
     /**
@@ -124,7 +218,7 @@ public class ArrayIntList implements IntList {
      */
     @Override
     public int size() {
-        return 0;
+        return size;
     }
 
     /**
@@ -133,7 +227,7 @@ public class ArrayIntList implements IntList {
      */
     @Override
     public void clear() {
-
+        size = 0;
     }
 
     /**
@@ -143,24 +237,62 @@ public class ArrayIntList implements IntList {
      */
     @Override
     public Iterator<Integer> iterator() {
-        return null;
+        // return a new instance of the helper iterator class (below)
+        return new ArrayIntlistIterator();
     }
-}
 
+    @Override
+    public String toString(){
+        if (size == 0) {
+            return "[]";
+        }
 
+        StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        sb.append(buffer[0]);
+        for (int i = 1; i < size; i++) {
+            sb.append(", ").append(buffer[i]);
+        }
 
+        sb.append("]");
+        return sb.toString();
+    }
 
+    // nested or inner class (helper class)
+    public class ArrayIntlistIterator implements Iterator<Integer> {
+        private int currentPosition;
 
+        public boolean ArrayIntListIterator() {
+            currentPosition = 0;
+            return false;
+        }
 
+        /**
+         * Returns {@code true} if the iteration has more elements.
+         * (In other words, returns {@code true} if {@link #next} would
+         * return an element rather than throwing an exception.)
+         *
+         * @return {@code true} if the iteration has more elements
+         */
+        @Override
+        public boolean hasNext() {
+            return currentPosition < size;
+        }
 
+        /**
+         * Returns the next element in the iteration.
+         *
+         * @return the next element in the iteration
+         * @throws NoSuchElementException if the iteration has no more elements
+         */
+        @Override
+        public Integer next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException();
+            }
+            return buffer[currentPosition++];
+        }
+    }
 
-
-
-
-
-
-
-
-
-
+}       // end of ArrayIntList
 

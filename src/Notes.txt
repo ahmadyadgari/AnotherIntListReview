@@ -1,0 +1,23 @@
+Stack                               Heap
+                                    0   1   2   3   4   5   6   7   8   9
+buffer          2024                14  20  44  81  12
+size            5
+                                   C2024                    length(10)
+
+
+// buffer is an address to find, place or get the value.
+
+
+get(i)                      - Fast, Constant time, O(1)/Big O
+addBack(v)                  - Fast, Constant time if new resize  O(1)
+addFront(v)                 - Slower, linear time
+removeBack(v)               - Fast,
+removeFront(v)              - slower, Linear time
+add(I, V)                   - worst case index O O(n)
+remove(I)                   - slower
+size()                      - Fast, O(1)
+Contains(v)                 - slower
+isEmpty()                   - Fast
+indexOf()                   - Slower
+resize(newSize)             - slower, linear time
+toString()                  - slower

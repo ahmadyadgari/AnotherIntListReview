@@ -70,6 +70,7 @@ public interface IntList extends Iterable<Integer> {
     /**
      * Returns the index of the first occurrence of the specified value
      * in this list, or -1 if this list does not contain the value.
+     *
      * @param value value to search for
      * @return the index of the first occurrence of the specified value in this list
      * or -1 if this list does not contain the value
